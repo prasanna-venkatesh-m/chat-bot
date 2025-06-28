@@ -1,15 +1,20 @@
 import "./Chat.css";
-import { useState } from "react";
-import axios from "axios";
+import { useState, useRef } from "react";
 
 function ChatScreen() {
   const [histroy, setHistroy] = useState([]);
   const [message, setMessage] = useState("");
-  const [loading,setLoading] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [id, setId] = useState(1);
+
+  // Use a ref to keep track of histroy inside async functions to avoid stale closure
+  const histroyRef = useRef(histroy);
+  histroyRef.current = histroy;
 
   const handleSend = async () => {
     const messageCopy = message;
     var chat = {
+      id: id,
       from: "user",
       message: message,
     };
@@ -17,26 +22,85 @@ function ChatScreen() {
     await getBotResponse(messageCopy);
   };
 
+  // Update chat history and return the new index of added chat (in current histroy)
   const updateChatHistory = (chat) => {
-    setHistroy((prevHistory) => [...prevHistory, chat]);
+    setHistroy((prevHistory) => {
+      const newHistory = [...prevHistory, chat];
+      return newHistory;
+    });
     setMessage("");
+    setId((prevId) => prevId + 1);
   };
+
+  const updateChatMessageById = (id, newMessage) => {
+    setHistroy((prev) => {
+      return prev.map((msg) =>
+        msg.id === id ? { ...msg, message: newMessage } : msg
+      );
+    });
+  };
+
+  const generateUniqueId = () =>
+    Date.now().toString() + Math.random().toString(36).slice(2);
 
   const getBotResponse = async (message) => {
     setLoading(true);
-    var response = await axios.post("http://localhost:11434/api/chat", {
-      model: "gemma3:1b",
-      stream: false,
-      messages: [{ role: "user", content: message }],
+
+    const response = await fetch("http://localhost:11434/api/chat", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model: "gemma3:1b",
+        stream: true,
+        messages: [{ role: "user", content: message }],
+      }),
     });
-    var chat = {
-      from: "bot",
-      message: response.data.message.content,
-    };
-    console.log(histroy);
-    updateChatHistory(chat);
+
+    if (!response.body) {
+      console.error("No response body stream available.");
+      setLoading(false);
+      return;
+    }
+
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = "";
+
+    // Generate unique id for bot message placeholder
+    const botId = generateUniqueId();
+    let botMessage = { id: botId, from: "bot", message: "" };
+
+    // Add placeholder bot message to history
+    setHistroy((prev) => [...prev, botMessage]);
+
+    while (true) {
+      const { value, done } = await reader.read();
+      if (done) break;
+
+      buffer += decoder.decode(value, { stream: true });
+
+      // Assuming newline-delimited JSON chunks
+      const lines = buffer.split("\n");
+      buffer = lines.pop(); // leftover partial
+
+      for (const line of lines) {
+        if (!line.trim()) continue;
+
+        try {
+          const parsed = JSON.parse(line);
+          botMessage.message += parsed.message?.content || "";
+
+          // Update bot message by id
+          updateChatMessageById(botId, botMessage.message);
+        } catch {
+          // Ignore incomplete JSON chunk errors
+        }
+      }
+    }
+
     setLoading(false);
-    console.log(histroy);
   };
 
   return (
@@ -50,14 +114,15 @@ function ChatScreen() {
               placeholder="Ask anything"
               value={message}
               onChange={(e) => setMessage(e.target.value)}
+              disabled={loading}
             ></textarea>
             <button
               type="button"
               className="btn btn-secondary"
               onClick={handleSend}
-              disabled={loading}
+              disabled={loading || !message.trim()}
             >
-              {loading ? 'Please wait' : 'Send'}
+              {loading ? "Please wait" : "Send"}
             </button>
           </div>
         </div>
@@ -65,9 +130,9 @@ function ChatScreen() {
           {histroy
             .slice()
             .reverse()
-            .map((item, index) => (
+            .map((item) => (
               <div
-                key={index + item.message}
+                key={item.id}
                 className={
                   item.from === "bot" ? "messages-left" : "messages-right"
                 }
