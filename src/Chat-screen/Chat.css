@@ -44,17 +44,6 @@
     text-align: left;
 }
 
-.message-row {
-  display: flex;
-  align-items: flex-start; /* or center, depending on your style */
-}
-
-.message-text {
-  white-space: pre-wrap;
-  word-break: break-word;
-  max-width: 90%;
-}
-
 
 .custom-textarea {
   height: auto;
@@ -63,6 +52,30 @@
   overflow-y: auto; 
   resize: none;
   line-height: 1.5em;
+}
+
+.message-row {
+  display: flex;
+  align-items: flex-start;
+  width: 100%;
+}
+
+.messages-left .message-row {
+  justify-content: flex-start;
+}
+
+.messages-right .message-row {
+  justify-content: flex-end;
+}
+
+.message-text {
+  white-space: pre-wrap;
+  word-break: break-word;
+  max-width: calc(100% - 60px); /* Adjust for circle width */
+  background-color: #333;
+  padding: 10px;
+  border-radius: 8px;
+  color: white;
 }
 
 .circle {
@@ -74,5 +87,6 @@
   justify-content: center;
   align-items: center;
   color: white;
-  margin: 0px 2%;
+  flex-shrink: 0;
+  margin: 0 8px;
 }

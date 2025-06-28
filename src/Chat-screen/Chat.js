@@ -5,22 +5,25 @@ import axios from "axios";
 function ChatScreen() {
   const [histroy, setHistroy] = useState([]);
   const [message, setMessage] = useState("");
+  const [loading,setLoading] = useState(false);
 
   const handleSend = async () => {
+    const messageCopy = message;
     var chat = {
       from: "user",
       message: message,
     };
     updateChatHistory(chat);
-    await getBotResponse(message);
-    setMessage("");
+    await getBotResponse(messageCopy);
   };
 
   const updateChatHistory = (chat) => {
     setHistroy((prevHistory) => [...prevHistory, chat]);
+    setMessage("");
   };
 
   const getBotResponse = async (message) => {
+    setLoading(true);
     var response = await axios.post("http://localhost:11434/api/chat", {
       model: "gemma3:1b",
       stream: false,
@@ -32,11 +35,12 @@ function ChatScreen() {
     };
     console.log(histroy);
     updateChatHistory(chat);
+    setLoading(false);
     console.log(histroy);
   };
 
   return (
- <div className="chat-screen">
+    <div className="chat-screen">
       <div className="chat-area">
         <div className="fixed-input">
           <div className="input-group">
@@ -51,26 +55,30 @@ function ChatScreen() {
               type="button"
               className="btn btn-secondary"
               onClick={handleSend}
+              disabled={loading}
             >
-              Send
+              {loading ? 'Please wait' : 'Send'}
             </button>
           </div>
         </div>
         <div className="chats">
-          {histroy.map((item, index) => (
-            <div
-              key={index + item.message}
-              className={
-                item.from == "bot" ? "messages-left" : "messages-right"
-              }
-            >
-              <div className="message-row">
-                {item.from === "bot" && <div className="circle">B</div>}
-                <div className="message-text">{item.message}</div>
-                {item.from === "user" && <div className="circle">U</div>}
+          {histroy
+            .slice()
+            .reverse()
+            .map((item, index) => (
+              <div
+                key={index + item.message}
+                className={
+                  item.from === "bot" ? "messages-left" : "messages-right"
+                }
+              >
+                <div className="message-row">
+                  {item.from === "bot" && <div className="circle">B</div>}
+                  <div className="message-text">{item.message}</div>
+                  {item.from === "user" && <div className="circle">U</div>}
+                </div>
               </div>
-            </div>
-          ))}
+            ))}
         </div>
       </div>
     </div>
