@@ -1,19 +1,29 @@
 import "./Chat.css";
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
+import ReactMarkdown from "react-markdown";
+import { useTheme } from "../ThemeToggle/ThemContext.js";
 
 function ChatScreen() {
   const [histroy, setHistroy] = useState([]);
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
   const [id, setId] = useState(1);
+  const bottomRef = useRef(null);
 
-  // Use a ref to keep track of histroy inside async functions to avoid stale closure
+  const { isDark, toggleTheme } = useTheme();
+
+  useEffect(() => {
+    if (bottomRef.current) {
+      bottomRef.current.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [histroy]);
+
   const histroyRef = useRef(histroy);
   histroyRef.current = histroy;
 
   const handleSend = async () => {
     const messageCopy = message;
-    var chat = {
+    const chat = {
       id: id,
       from: "user",
       message: message,
@@ -22,22 +32,16 @@ function ChatScreen() {
     await getBotResponse(messageCopy);
   };
 
-  // Update chat history and return the new index of added chat (in current histroy)
   const updateChatHistory = (chat) => {
-    setHistroy((prevHistory) => {
-      const newHistory = [...prevHistory, chat];
-      return newHistory;
-    });
+    setHistroy((prevHistory) => [...prevHistory, chat]);
     setMessage("");
     setId((prevId) => prevId + 1);
   };
 
   const updateChatMessageById = (id, newMessage) => {
-    setHistroy((prev) => {
-      return prev.map((msg) =>
-        msg.id === id ? { ...msg, message: newMessage } : msg
-      );
-    });
+    setHistroy((prev) =>
+      prev.map((msg) => (msg.id === id ? { ...msg, message: newMessage } : msg))
+    );
   };
 
   const generateUniqueId = () =>
@@ -68,11 +72,9 @@ function ChatScreen() {
     const decoder = new TextDecoder();
     let buffer = "";
 
-    // Generate unique id for bot message placeholder
     const botId = generateUniqueId();
     let botMessage = { id: botId, from: "bot", message: "" };
 
-    // Add placeholder bot message to history
     setHistroy((prev) => [...prev, botMessage]);
 
     while (true) {
@@ -81,9 +83,8 @@ function ChatScreen() {
 
       buffer += decoder.decode(value, { stream: true });
 
-      // Assuming newline-delimited JSON chunks
       const lines = buffer.split("\n");
-      buffer = lines.pop(); // leftover partial
+      buffer = lines.pop();
 
       for (const line of lines) {
         if (!line.trim()) continue;
@@ -91,8 +92,6 @@ function ChatScreen() {
         try {
           const parsed = JSON.parse(line);
           botMessage.message += parsed.message?.content || "";
-
-          // Update bot message by id
           updateChatMessageById(botId, botMessage.message);
         } catch {
           // Ignore incomplete JSON chunk errors
@@ -104,8 +103,27 @@ function ChatScreen() {
   };
 
   return (
-    <div className="chat-screen">
+    <div className={`chat-screen${isDark ? " dark-mode" : ""}`}>
       <div className="chat-area">
+        {/* Dark mode toggle */}
+        <div
+          className="form-check form-switch"
+          style={{ position: "fixed", top: 10, right: 20, zIndex: 200 }}
+        >
+          <input
+            className="form-check-input"
+            type="checkbox"
+            role="switch"
+            id="darkModeSwitch"
+            checked={isDark}
+            onChange={toggleTheme}
+          />
+          <label className="form-check-label" htmlFor="darkModeSwitch">
+            {isDark ? "Dark" : "Light"}
+          </label>
+        </div>
+
+        {/* Chat input area */}
         <div className="fixed-input">
           <div className="input-group">
             <textarea
@@ -118,7 +136,7 @@ function ChatScreen() {
             ></textarea>
             <button
               type="button"
-              className="btn btn-secondary"
+              className="btn btn-secondary full-height-button"
               onClick={handleSend}
               disabled={loading || !message.trim()}
             >
@@ -126,24 +144,24 @@ function ChatScreen() {
             </button>
           </div>
         </div>
+
+        {/* Messages */}
         <div className="chats">
-          {histroy
-            .slice()
-            .reverse()
-            .map((item) => (
-              <div
-                key={item.id}
-                className={
-                  item.from === "bot" ? "messages-left" : "messages-right"
-                }
-              >
-                <div className="message-row">
-                  {item.from === "bot" && <div className="circle">B</div>}
-                  <div className="message-text">{item.message}</div>
-                  {item.from === "user" && <div className="circle">U</div>}
+          {histroy.map((item) => (
+            <div
+              key={item.id}
+              className={item.from === "bot" ? "messages-left" : "messages-right"}
+            >
+              <div className="message-row">
+                {item.from === "bot" && <div className="circle">B</div>}
+                <div className="message-text">
+                  <ReactMarkdown>{item.message}</ReactMarkdown>
                 </div>
+                {item.from === "user" && <div className="circle">U</div>}
               </div>
-            ))}
+            </div>
+          ))}
+          <div ref={bottomRef} />
         </div>
       </div>
     </div>
