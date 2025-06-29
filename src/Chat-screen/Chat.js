@@ -3,6 +3,8 @@ import { useState, useRef, useEffect } from "react";
 import ReactMarkdown from "react-markdown";
 import { useTheme } from "../ThemeToggle/ThemContext.js";
 import { FaRobot, FaUser } from "react-icons/fa"; // Font Awesome Robot
+const apiUrl = process.env.REACT_APP_API_URL;
+const model = process.env.REACT_APP_LLM_MODEL;
 
 function ChatScreen() {
   const [histroy, setHistroy] = useState([]);
@@ -51,13 +53,13 @@ function ChatScreen() {
   const getBotResponse = async (message) => {
     setLoading(true);
 
-    const response = await fetch("http://localhost:11434/api/chat", {
+    const response = await fetch(apiUrl, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "gemma3:1b",
+        model: model,
         stream: true,
         messages: [{ role: "user", content: message }],
       }),
