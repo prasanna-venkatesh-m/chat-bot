@@ -2,6 +2,7 @@ import React from "react";
 import "bootstrap/dist/css/bootstrap.min.css";
 import { Navbar, Container } from "react-bootstrap";
 import { useTheme } from "../ThemeToggle/ThemContext.js";
+import { FaRobot } from "react-icons/fa"; 
 
 function MyNavbar() {
   const { isDark, toggleTheme } = useTheme();
@@ -15,7 +16,10 @@ function MyNavbar() {
       className="custom-navbar"
     >
       <Container fluid>
-        <Navbar.Brand href="#">Gemma 3</Navbar.Brand>
+        <Navbar.Brand href="#">
+        <FaRobot size={25} className="me-2" />
+        Gemma 3
+      </Navbar.Brand>
 
         <Navbar.Toggle aria-controls="basic-navbar-nav" className="ms-auto" />
 
@@ -25,7 +29,10 @@ function MyNavbar() {
         >
           {/* Light / Dark toggle */}
           <div className="d-flex align-items-center">
-            <span className="theme-label me-2">Light</span>
+            <span className="theme-label me-2" style={{ color: "#f8f9fa" }}>
+              Light
+            </span>
+
             <div className="form-check form-switch mb-0">
               <input
                 className="form-check-input"
@@ -36,7 +43,9 @@ function MyNavbar() {
                 onChange={toggleTheme}
               />
             </div>
-            <span className="theme-label ms-2">Dark</span>
+            <span className="theme-label ms-2" style={{ color: "#212529" }}>
+              Dark
+            </span>
           </div>
         </Navbar.Collapse>
       </Container>

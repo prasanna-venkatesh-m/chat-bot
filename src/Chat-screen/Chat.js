@@ -2,6 +2,7 @@ import "./Chat.css";
 import { useState, useRef, useEffect } from "react";
 import ReactMarkdown from "react-markdown";
 import { useTheme } from "../ThemeToggle/ThemContext.js";
+import { FaRobot, FaUser } from "react-icons/fa"; // Font Awesome Robot
 
 function ChatScreen() {
   const [histroy, setHistroy] = useState([]);
@@ -150,14 +151,21 @@ function ChatScreen() {
           {histroy.map((item) => (
             <div
               key={item.id}
-              className={item.from === "bot" ? "messages-left" : "messages-right"}
+              className={
+                item.from === "bot" ? "messages-left" : "messages-right"
+              }
             >
               <div className="message-row">
-                {item.from === "bot" && <div className="circle">B</div>}
+                {item.from === "bot" && (
+                  <div className="circle">
+                    {" "}
+                    <FaRobot size={20} />
+                  </div>
+                )}
                 <div className="message-text">
                   <ReactMarkdown>{item.message}</ReactMarkdown>
                 </div>
-                {item.from === "user" && <div className="circle">U</div>}
+                {item.from === "user" && <div className="circle"><FaUser size={20} /></div>}
               </div>
             </div>
           ))}
