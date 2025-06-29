@@ -15,7 +15,7 @@ function MyNavbar() {
       className="custom-navbar"
     >
       <Container fluid>
-        <Navbar.Brand href="#">Navbar</Navbar.Brand>
+        <Navbar.Brand href="#">Gemma 3</Navbar.Brand>
 
         <Navbar.Toggle aria-controls="basic-navbar-nav" className="ms-auto" />
 
