@@ -25,7 +25,7 @@ function MyNavbar() {
         >
           {/* Light / Dark toggle */}
           <div className="d-flex align-items-center">
-            <span className="me-2">Light</span>
+            <span className="theme-label me-2">Light</span>
             <div className="form-check form-switch mb-0">
               <input
                 className="form-check-input"
@@ -36,7 +36,7 @@ function MyNavbar() {
                 onChange={toggleTheme}
               />
             </div>
-            <span className="ms-2">Dark</span>
+            <span className="theme-label ms-2">Dark</span>
           </div>
         </Navbar.Collapse>
       </Container>

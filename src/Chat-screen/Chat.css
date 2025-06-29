@@ -260,3 +260,7 @@ button.btn.btn-secondary:hover {
   background-color: #555;
   color: #eee;
 }
+
+.dark-mode textarea::placeholder {
+  color: #aaa; /* Light gray */
+}
