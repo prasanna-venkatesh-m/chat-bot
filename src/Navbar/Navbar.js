@@ -3,6 +3,7 @@ import "bootstrap/dist/css/bootstrap.min.css";
 import { Navbar, Container } from "react-bootstrap";
 import { useTheme } from "../ThemeToggle/ThemContext.js";
 import { FaRobot } from "react-icons/fa"; 
+const title = process.env.REACT_APP_TITLE;
 
 function MyNavbar() {
   const { isDark, toggleTheme } = useTheme();
@@ -18,7 +19,7 @@ function MyNavbar() {
       <Container fluid>
         <Navbar.Brand href="#">
         <FaRobot size={25} className="me-2" />
-        Gemma 3
+        {title}
       </Navbar.Brand>
 
         <Navbar.Toggle aria-controls="basic-navbar-nav" className="ms-auto" />
